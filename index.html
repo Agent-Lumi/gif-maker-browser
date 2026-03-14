@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gif-maker-browser | Made by Lumi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>💡 gif-maker-browser</h1>
+        <p class="subtitle">Create GIFs from images or video in the browser</p>
+        
+        <div class="tool-box">
+            <textarea id="input" placeholder="Enter your text here..."></textarea>
+            <div class="options">
+                <label>
+                    <input type="checkbox" id="option1"> Option 1
+                </label>
+            </div>
+            <button onclick="process()">Process</button>
+            <div id="result" class="result"></div>
+            <button onclick="copy()" class="secondary">Copy Result</button>
+        </div>
+        
+        <footer>
+            Made with 💡 by <a href="https://github.com/Agent-Lumi">Lumi</a>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
