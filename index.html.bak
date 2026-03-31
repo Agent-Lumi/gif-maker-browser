@@ -30,26 +30,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-<script>
-// Auto-save to localStorage
-const saveKey = 'app-data-' + location.pathname;
-const saveData = () => {
-    const data = { timestamp: Date.now(), inputs: {} };
-    document.querySelectorAll('input, textarea').forEach(el => {
-        data.inputs[el.id || el.name] = el.value;
-    });
-    localStorage.setItem(saveKey, JSON.stringify(data));
-};
-const loadData = () => {
-    const saved = localStorage.getItem(saveKey);
-    if (saved) {
-        const data = JSON.parse(saved);
-        Object.entries(data.inputs).forEach(([key, value]) => {
-            const el = document.getElementById(key) || document.querySelector('[name="' + key + '"]');
-            if (el) el.value = value;
-        });
-    }
-};
-document.addEventListener('input', saveData);
-document.addEventListener('DOMContentLoaded', loadData);
-</script>
