@@ -154,3 +154,23 @@ importBtn.onclick = () => {
 };
 document.querySelector('.container')?.appendChild(importBtn);
 </script>
+<script>
+// Import from file
+const importBtn = document.createElement('button');
+importBtn.textContent = '📁 Import';
+importBtn.onclick = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const textArea = document.querySelector('textarea');
+            if (textArea) textArea.value = e.target.result;
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+};
+document.querySelector('.container')?.appendChild(importBtn);
+</script>
