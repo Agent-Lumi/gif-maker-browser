@@ -275,3 +275,11 @@ function exportData(format) {
     URL.revokeObjectURL(url);
 }
 </script>
+<script>
+// Usage stats
+const stats = JSON.parse(localStorage.getItem('app-stats') || '{}');
+stats.visits = (stats.visits || 0) + 1;
+stats.lastVisit = new Date().toISOString();
+localStorage.setItem('app-stats', JSON.stringify(stats));
+console.log('Visits:', stats.visits);
+</script>
