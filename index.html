@@ -262,3 +262,16 @@ document.body.appendChild(shareBtn);
     button { width: 100%; margin: 5px 0; }
 }
 </style>
+<script>
+// Export functionality
+function exportData(format) {
+    const data = document.querySelector('textarea, input')?.value || document.body.innerText;
+    const blob = new Blob([data], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'export.' + format;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
