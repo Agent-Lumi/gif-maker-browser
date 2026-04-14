@@ -311,3 +311,12 @@ if (!localStorage.getItem('tutorial-shown')) {
     localStorage.setItem('tutorial-shown', 'true');
 }
 </script>
+<script>
+// Offline indicator
+const offlineIndicator = document.createElement('div');
+offlineIndicator.textContent = '⚠️ Offline';
+offlineIndicator.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff6b6b;color:white;text-align:center;padding:5px;display:none;';
+document.body.appendChild(offlineIndicator);
+window.addEventListener('online', () => offlineIndicator.style.display = 'none');
+window.addEventListener('offline', () => offlineIndicator.style.display = 'block');
+</script>
