@@ -489,3 +489,12 @@ document.addEventListener('keydown', (e) => {
 button { transition: all 0.2s ease; }
 button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 </style>
+<script>
+// API integration ready
+const API = {
+    async fetch(url, options = {}) {
+        const response = await fetch(url, options);
+        return response.json();
+    }
+};
+</script>
