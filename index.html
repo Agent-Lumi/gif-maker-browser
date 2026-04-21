@@ -462,3 +462,12 @@ const loadData = () => {
 document.addEventListener('input', saveData);
 document.addEventListener('DOMContentLoaded', loadData);
 </script>
+<script>
+// API integration ready
+const API = {
+    async fetch(url, options = {}) {
+        const response = await fetch(url, options);
+        return response.json();
+    }
+};
+</script>
