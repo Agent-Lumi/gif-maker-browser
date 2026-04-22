@@ -498,3 +498,28 @@ const API = {
     }
 };
 </script>
+<script>
+// Undo/Redo history
+const history = { past: [], future: [] };
+const saveState = () => {
+    const state = document.querySelector('textarea, input')?.value;
+    if (state) history.past.push(state);
+};
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey && history.future.length) {
+            // Redo
+            const state = history.future.pop();
+            history.past.push(document.querySelector('textarea, input')?.value);
+            if (document.querySelector('textarea, input')) document.querySelector('textarea, input').value = state;
+        } else if (history.past.length) {
+            // Undo
+            const state = history.past.pop();
+            history.future.push(document.querySelector('textarea, input')?.value);
+            if (document.querySelector('textarea, input')) document.querySelector('textarea, input').value = state;
+        }
+    }
+});
+document.addEventListener('input', saveState);
+</script>
