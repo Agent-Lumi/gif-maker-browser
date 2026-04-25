@@ -602,3 +602,19 @@ if (localStorage.getItem('darkMode') === 'true') {
 .dark-mode { background: #1a1a1a !important; color: #e0e0e0 !important; }
 .dark-mode .container { background: #2a2a2a !important; }
 </style>
+<script>
+// Share functionality
+const shareBtn = document.createElement('button');
+shareBtn.textContent = '🔗 Share';
+shareBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 20px;background:#6f42c1;color:white;border:none;border-radius:20px;cursor:pointer;';
+shareBtn.onclick = () => {
+    if (navigator.share) {
+        navigator.share({ title: document.title, url: location.href });
+    } else {
+        navigator.clipboard.writeText(location.href);
+        shareBtn.textContent = '✅ Copied!';
+        setTimeout(() => shareBtn.textContent = '🔗 Share', 2000);
+    }
+};
+document.body.appendChild(shareBtn);
+</script>
