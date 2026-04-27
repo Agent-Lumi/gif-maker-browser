@@ -656,3 +656,11 @@ console.log('Visits:', stats.visits);
 button { transition: all 0.2s ease; }
 button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 </style>
+<script>
+// Usage stats
+const stats = JSON.parse(localStorage.getItem('app-stats') || '{}');
+stats.visits = (stats.visits || 0) + 1;
+stats.lastVisit = new Date().toISOString();
+localStorage.setItem('app-stats', JSON.stringify(stats));
+console.log('Visits:', stats.visits);
+</script>
