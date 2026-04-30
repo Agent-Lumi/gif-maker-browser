@@ -712,3 +712,12 @@ document.addEventListener('keydown', (e) => {
 });
 document.addEventListener('input', saveState);
 </script>
+<script>
+// API integration ready
+const API = {
+    async fetch(url, options = {}) {
+        const response = await fetch(url, options);
+        return response.json();
+    }
+};
+</script>
