@@ -861,3 +861,25 @@ document.addEventListener('keydown', (e) => {
 });
 document.addEventListener('input', saveState);
 </script>
+<script>
+// Dark mode toggle
+const darkModeToggle = document.createElement('button');
+darkModeToggle.textContent = '🌙';
+darkModeToggle.style.cssText = 'position:fixed;top:20px;right:20px;background:none;border:none;font-size:24px;cursor:pointer;z-index:1000;';
+darkModeToggle.onclick = () => {
+    document.body.classList.toggle('dark-mode');
+    darkModeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+};
+document.body.appendChild(darkModeToggle);
+
+// Check saved preference
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.textContent = '☀️';
+}
+</script>
+<style>
+.dark-mode { background: #1a1a1a !important; color: #e0e0e0 !important; }
+.dark-mode .container { background: #2a2a2a !important; }
+</style>

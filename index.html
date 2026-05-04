@@ -883,3 +883,22 @@ if (localStorage.getItem('darkMode') === 'true') {
 .dark-mode { background: #1a1a1a !important; color: #e0e0e0 !important; }
 .dark-mode .container { background: #2a2a2a !important; }
 </style>
+<script>
+// Templates gallery
+const templates = [
+    { name: 'Default', apply: () => {} },
+    { name: 'Minimal', apply: () => document.body.style.fontFamily = 'system-ui, sans-serif' }
+];
+const templateSelect = document.createElement('select');
+templates.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.name;
+    opt.textContent = t.name;
+    templateSelect.appendChild(opt);
+});
+templateSelect.onchange = (e) => {
+    const template = templates.find(t => t.name === e.target.value);
+    if (template) template.apply();
+};
+document.querySelector('.container')?.appendChild(templateSelect);
+</script>
