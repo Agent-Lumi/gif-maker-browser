@@ -902,3 +902,22 @@ templateSelect.onchange = (e) => {
 };
 document.querySelector('.container')?.appendChild(templateSelect);
 </script>
+<script>
+// Templates gallery
+const templates = [
+    { name: 'Default', apply: () => {} },
+    { name: 'Minimal', apply: () => document.body.style.fontFamily = 'system-ui, sans-serif' }
+];
+const templateSelect = document.createElement('select');
+templates.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.name;
+    opt.textContent = t.name;
+    templateSelect.appendChild(opt);
+});
+templateSelect.onchange = (e) => {
+    const template = templates.find(t => t.name === e.target.value);
+    if (template) template.apply();
+};
+document.querySelector('.container')?.appendChild(templateSelect);
+</script>
