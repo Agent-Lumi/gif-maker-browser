@@ -999,3 +999,31 @@ if (localStorage.getItem('darkMode') === 'true') {
 .dark-mode { background: #1a1a1a !important; color: #e0e0e0 !important; }
 .dark-mode .container { background: #2a2a2a !important; }
 </style>
+<script>
+// Simple tutorial
+const tutorialSteps = [
+    { selector: 'h1', text: 'Welcome! This is the main title.' },
+    { selector: 'button', text: 'Click here to perform actions.' }
+];
+let currentStep = 0;
+function showTutorial() {
+    if (currentStep < tutorialSteps.length) {
+        const step = tutorialSteps[currentStep];
+        const el = document.querySelector(step.selector);
+        if (el) {
+            const tooltip = document.createElement('div');
+            tooltip.textContent = step.text;
+            tooltip.style.cssText = 'position:absolute;background:#6f42c1;color:white;padding:10px;border-radius:5px;z-index:1000;';
+            el.style.position = 'relative';
+            el.appendChild(tooltip);
+            setTimeout(() => tooltip.remove(), 3000);
+        }
+        currentStep++;
+    }
+}
+// Show tutorial on first visit
+if (!localStorage.getItem('tutorial-shown')) {
+    setTimeout(showTutorial, 1000);
+    localStorage.setItem('tutorial-shown', 'true');
+}
+</script>
