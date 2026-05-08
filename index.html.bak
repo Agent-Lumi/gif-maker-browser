@@ -1027,3 +1027,15 @@ if (!localStorage.getItem('tutorial-shown')) {
     localStorage.setItem('tutorial-shown', 'true');
 }
 </script>
+<script>
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+            case 's': e.preventDefault(); console.log('Save shortcut'); break;
+            case 'r': e.preventDefault(); location.reload(); break;
+            case 'f': e.preventDefault(); document.querySelector('input')?.focus(); break;
+        }
+    }
+});
+</script>
