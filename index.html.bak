@@ -1070,3 +1070,14 @@ stats.lastVisit = new Date().toISOString();
 localStorage.setItem('app-stats', JSON.stringify(stats));
 console.log('Visits:', stats.visits);
 </script>
+<script>
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+function notify(title, body) {
+    if (Notification.permission === 'granted') {
+        new Notification(title, { body });
+    }
+}
+</script>
