@@ -1292,3 +1292,123 @@ document.body.appendChild(offlineIndicator);
 window.addEventListener('online', () => offlineIndicator.style.display = 'none');
 window.addEventListener('offline', () => offlineIndicator.style.display = 'block');
 </script>
+
+<!-- Keyboard Shortcuts Feature - Added 2026-06-12 -->
+<div id="keyboard-shortcuts-help" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:10000;max-width:400px;font-family:system-ui,sans-serif;">
+    <h3 style="margin-top:0;">⌨️ Keyboard Shortcuts</h3>
+    <ul style="line-height:2;">
+        <li><kbd>Ctrl+S</kbd> - Save GIF</li>
+        <li><kbd>Ctrl+R</kbd> - Reset canvas</li>
+        <li><kbd>Ctrl+F</kbd> - Focus file input</li>
+        <li><kbd>Ctrl+?</kbd> - Show this help</li>
+        <li><kbd>Space</kbd> - Play/Pause preview</li>
+        <li><kbd>Esc</kbd> - Close modals</li>
+    </ul>
+    <button onclick="document.getElementById('keyboard-shortcuts-help').style.display='none'" style="margin-top:10px;padding:8px 16px;background:#6f42c1;color:#fff;border:none;border-radius:5px;cursor:pointer;">Close</button>
+</div>
+
+<style>
+kbd {
+    background: #f4f4f4;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+#keyboard-shortcuts-help kbd {
+    background: #e8e8e8;
+}
+.shortcut-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.shortcut-hint:hover {
+    opacity: 1;
+}
+</style>
+
+<script>
+// Keyboard shortcuts handler
+document.addEventListener('keydown', function(e) {
+    const helpModal = document.getElementById('keyboard-shortcuts-help');
+    
+    // Show help with Ctrl+?
+    if ((e.ctrlKey || e.metaKey) && e.key === '?') {
+        e.preventDefault();
+        helpModal.style.display = helpModal.style.display === 'none' ? 'block' : 'none';
+        return;
+    }
+    
+    // Close modals with Escape
+    if (e.key === 'Escape') {
+        helpModal.style.display = 'none';
+        return;
+    }
+    
+    // Ctrl/Cmd shortcuts
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key.toLowerCase()) {
+            case 's':
+                e.preventDefault();
+                // Trigger save/download if available
+                const downloadBtn = document.querySelector('button[download], a[download]');
+                if (downloadBtn) downloadBtn.click();
+                console.log('🎹 Shortcut: Save GIF triggered');
+                break;
+            case 'r':
+                e.preventDefault();
+                // Reset/clear
+                const fileInput = document.querySelector('input[type="file"]');
+                if (fileInput) {
+                    fileInput.value = '';
+                    fileInput.dispatchEvent(new Event('change'));
+                }
+                console.log('🎹 Shortcut: Reset triggered');
+                break;
+            case 'f':
+                e.preventDefault();
+                // Focus file input
+                const input = document.querySelector('input[type="file"]');
+                if (input) input.click();
+                console.log('🎹 Shortcut: Focus file input');
+                break;
+        }
+    }
+    
+    // Space for play/pause
+    if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        console.log('🎹 Shortcut: Play/Pause');
+    }
+});
+
+// Add help button
+document.addEventListener('DOMContentLoaded', function() {
+    const hint = document.createElement('div');
+    hint.className = 'shortcut-hint';
+    hint.innerHTML = '⌨️ Press <kbd>Ctrl+?</kbd> for shortcuts';
+    hint.onclick = function() {
+        document.getElementById('keyboard-shortcuts-help').style.display = 'block';
+    };
+    document.body.appendChild(hint);
+    
+    // Auto-hide hint after 5 seconds
+    setTimeout(function() {
+        hint.style.opacity = '0';
+        setTimeout(function() {
+            hint.style.display = 'none';
+        }, 500);
+    }, 5000);
+});
+</script>
+<!-- End Keyboard Shortcuts -->

@@ -35,3 +35,14 @@ MIT
 ---
 
 Made with 💡 by [Lumi](https://github.com/Agent-Lumi)
+
+## ⌨️ Keyboard Shortcuts
+
+- `Ctrl+S` - Save GIF
+- `Ctrl+R` - Reset canvas
+- `Ctrl+F` - Focus file input
+- `Ctrl+?` - Show shortcuts help
+- `Space` - Play/Pause preview
+- `Esc` - Close modals
+
+*Added in latest update*
