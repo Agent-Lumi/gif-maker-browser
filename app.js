@@ -1,15 +1,11 @@
-// GIF.js library for GIF creation
-const GIF_SCRIPT = document.createElement('script');
-GIF_SCRIPT.src = 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js';
-document.head.appendChild(GIF_SCRIPT);
-
 let frames = [];
 let isRecording = false;
 let animationId = null;
+let previewAnimationId = null;
 
 // Wait for GIF.js to load
 function init() {
-    // Setup drag and drop
+    // Setup drag and drop for file upload
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     
@@ -33,6 +29,12 @@ function init() {
     document.getElementById('clearFrames').addEventListener('click', clearFrames);
     document.getElementById('generateGif').addEventListener('click', generateGif);
     document.getElementById('downloadGif').addEventListener('click', downloadGif);
+    
+    // New: Preview button
+    const previewBtn = document.getElementById('previewFrames');
+    if (previewBtn) {
+        previewBtn.addEventListener('click', togglePreview);
+    }
 }
 
 function handleDrop(e) {
@@ -78,12 +80,92 @@ function updateFramePreview() {
     }
     
     container.innerHTML = frames.map((frame, i) => `
-        <div class="frame-item" data-index="${i}">
+        <div class="frame-item" data-index="${i}" draggable="true">
             <img src="${frame.dataUrl}" alt="Frame ${i + 1}">
             <span class="frame-num">#${i + 1}</span>
-            <button class="remove-frame" onclick="removeFrame(${i})">×</button>
+            <div class="frame-controls">
+                <button class="frame-btn move-left" data-index="${i}" title="Move left">←</button>
+                <button class="frame-btn move-right" data-index="${i}" title="Move right">→</button>
+                <button class="frame-btn dup-frame" data-index="${i}" title="Duplicate">⎘</button>
+                <button class="frame-btn del-frame" data-index="${i}" title="Delete">×</button>
+            </div>
+            <div class="frame-delay-row">
+                <label class="delay-label">Delay:
+                    <input type="number" class="frame-delay-input" data-index="${i}" value="${frame.delay}" min="10" max="5000" step="10">ms
+                </label>
+            </div>
         </div>
     `).join('');
+    
+    // Attach event listeners
+    container.querySelectorAll('.move-left').forEach(btn => {
+        btn.addEventListener('click', () => moveFrame(parseInt(btn.dataset.index), -1));
+    });
+    container.querySelectorAll('.move-right').forEach(btn => {
+        btn.addEventListener('click', () => moveFrame(parseInt(btn.dataset.index), 1));
+    });
+    container.querySelectorAll('.dup-frame').forEach(btn => {
+        btn.addEventListener('click', () => duplicateFrame(parseInt(btn.dataset.index)));
+    });
+    container.querySelectorAll('.del-frame').forEach(btn => {
+        btn.addEventListener('click', () => removeFrame(parseInt(btn.dataset.index)));
+    });
+    container.querySelectorAll('.frame-delay-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+            const idx = parseInt(input.dataset.index);
+            frames[idx].delay = parseInt(e.target.value) || 100;
+        });
+    });
+    
+    // Setup drag and drop
+    container.querySelectorAll('.frame-item').forEach((item, idx) => {
+        item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', idx);
+            item.classList.add('dragging');
+        });
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+        });
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            item.classList.add('drag-over');
+        });
+        item.addEventListener('dragleave', () => {
+            item.classList.remove('drag-over');
+        });
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            item.classList.remove('drag-over');
+            const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+            const toIdx = idx;
+            if (fromIdx !== toIdx) {
+                const [moved] = frames.splice(fromIdx, 1);
+                frames.splice(toIdx, 0, moved);
+                updateFramePreview();
+            }
+        });
+    });
+}
+
+function moveFrame(index, direction) {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= frames.length) return;
+    const [moved] = frames.splice(index, 1);
+    frames.splice(newIndex, 0, moved);
+    updateFramePreview();
+}
+
+function duplicateFrame(index) {
+    const frameToDup = frames[index];
+    const newFrame = {
+        image: frameToDup.image,
+        dataUrl: frameToDup.dataUrl,
+        delay: frameToDup.delay
+    };
+    frames.splice(index + 1, 0, newFrame);
+    updateFramePreview();
+    updateStats();
+    showNotification(`Frame ${index + 1} duplicated!`);
 }
 
 function removeFrame(index) {
@@ -105,6 +187,52 @@ function updateStats() {
     document.getElementById('frameCount').textContent = frames.length;
     const size = frames.reduce((acc, f) => acc + (f.dataUrl.length * 0.75), 0);
     document.getElementById('totalSize').textContent = (size / 1024 / 1024).toFixed(2) + ' MB';
+    
+    // Calculate total animation duration
+    const totalDuration = frames.reduce((acc, f) => acc + (f.delay || 100), 0);
+    const durationEl = document.getElementById('totalDuration');
+    if (durationEl) {
+        durationEl.textContent = (totalDuration / 1000).toFixed(1) + 's';
+    }
+}
+
+// Frame preview animation
+let previewIndex = 0;
+function togglePreview() {
+    const btn = document.getElementById('previewFrames');
+    if (previewAnimationId) {
+        clearTimeout(previewAnimationId);
+        previewAnimationId = null;
+        btn.textContent = '▶️ Preview Animation';
+        btn.classList.remove('previewing');
+        // Remove highlight from all frames
+        document.querySelectorAll('.frame-item').forEach(el => el.classList.remove('preview-active'));
+    } else {
+        if (frames.length < 2) {
+            showNotification('Need at least 2 frames to preview!', 'error');
+            return;
+        }
+        btn.textContent = '⏹️ Stop Preview';
+        btn.classList.add('previewing');
+        previewIndex = 0;
+        animatePreview();
+    }
+}
+
+function animatePreview() {
+    const frameItems = document.querySelectorAll('.frame-item');
+    frameItems.forEach(el => el.classList.remove('preview-active'));
+    
+    if (previewIndex >= frames.length) previewIndex = 0;
+    
+    if (frameItems[previewIndex]) {
+        frameItems[previewIndex].classList.add('preview-active');
+        frameItems[previewIndex].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+    
+    const delay = frames[previewIndex]?.delay || 100;
+    previewIndex++;
+    previewAnimationId = setTimeout(animatePreview, delay);
 }
 
 // Animation recording

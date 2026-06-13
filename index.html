@@ -18,6 +18,7 @@
         <div class="stats-bar">
             <span>📊 Frames: <strong id="frameCount">0</strong></span>
             <span>💾 Size: <strong id="totalSize">0 MB</strong></span>
+            <span>⏱️ Duration: <strong id="totalDuration">0.0s</strong></span>
         </div>
         
         <!-- Image Upload Section -->
@@ -70,11 +71,19 @@
         
         <!-- Frame Preview -->
         <section class="tool-section">
-            <h2>🎞️ Frame Preview</h2>
+            <div class="frame-preview-header">
+                <h2>🎞️ Frame Preview</h2>
+                <button id="previewFrames" class="btn-preview">▶️ Preview Animation</button>
+            </div>
             <div id="framePreview" class="frame-preview">
                 <p class="empty-state">No frames yet. Add images above!</p>
             </div>
-            <button id="clearFrames" class="btn-secondary">🗑️ Clear All Frames</button>
+            <div class="frame-actions">
+                <button id="clearFrames" class="btn-secondary">🗑️ Clear All Frames</button>
+                <div class="help-text">
+                    <small>💡 Drag frames to reorder • Use frame controls for individual delay</small>
+                </div>
+            </div>
         </section>
         
         <!-- Generate Section -->
@@ -102,6 +111,8 @@
             switch(e.key) {
                 case 'g': e.preventDefault(); document.getElementById('generateGif').click(); break;
                 case 'o': e.preventDefault(); document.getElementById('fileInput').click(); break;
+                case 'p': e.preventDefault(); document.getElementById('previewFrames')?.click(); break;
+                case 'd': e.preventDefault(); document.getElementById('downloadGif').click(); break;
             }
         }
     });
