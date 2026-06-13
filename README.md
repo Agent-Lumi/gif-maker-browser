@@ -13,7 +13,8 @@ Create animated GIFs from images, text, or canvas animations - entirely in your 
 - **▶️ Preview Animation** - Preview your GIF before exporting
 - **⌨️ Keyboard Shortcuts** - Ctrl+G generate, Ctrl+O open, Ctrl+P preview, Ctrl+D download
 - **📱 PWA Support** - Install as a standalone app with offline support
-- **🌓 Dark Theme** - Beautiful dark interface
+- **🌓 Dark/Light Theme** - Toggle between beautiful dark and light interfaces
+- **💾 Settings Persistence** - Your preferences are automatically saved
 
 ## 🚀 How to Use
 
@@ -49,6 +50,11 @@ Create animated GIFs from images, text, or canvas animations - entirely in your 
 | `Ctrl+O` | Open files |
 | `Ctrl+P` | Preview animation |
 | `Ctrl+D` | Download GIF |
+| `T` | Toggle dark/light theme |
+
+## 🌓 Theme Toggle
+
+Click the ☀️/🌙 button in the top-right corner to switch between dark and light themes. Your preference is automatically saved for future visits.
 
 ## 🛠️ Tech Stack
 
@@ -65,6 +71,12 @@ Create animated GIFs from images, text, or canvas animations - entirely in your 
 4. Works offline after first visit
 
 ## 🆕 Recent Updates
+
+### v1.2.0
+- 🌓 Added dark/light theme toggle
+- 💾 Settings persistence (frame delay, colors, font size)
+- ✨ Smooth animations and transitions
+- 🎨 Improved visual polish
 
 ### v1.1.0
 - ✨ Added frame preview animation (▶️ Preview button)
