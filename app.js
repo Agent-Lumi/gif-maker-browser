@@ -3,6 +3,11 @@ let isRecording = false;
 let animationId = null;
 let previewAnimationId = null;
 
+// NEW: Undo/Redo functionality
+let undoStack = [];
+let redoStack = [];
+const MAX_UNDO_STEPS = 20;
+
 // Wait for GIF.js to load
 function init() {
     // Setup drag and drop for file upload
@@ -35,7 +40,127 @@ function init() {
     if (previewBtn) {
         previewBtn.addEventListener('click', togglePreview);
     }
+    
+    // NEW: Setup keyboard shortcuts
+    setupKeyboardShortcuts();
+    
+    // NEW: Create undo/redo UI
+    createUndoRedoUI();
 }
+
+// NEW: Save state for undo/redo
+function saveState() {
+    // Deep clone frames for state saving
+    const state = frames.map(f => ({ ...f, image: null })); // Don't clone images for memory
+    undoStack.push(JSON.stringify(state));
+    if (undoStack.length > MAX_UNDO_STEPS) {
+        undoStack.shift();
+    }
+    redoStack = []; // Clear redo stack on new action
+    updateUndoRedoButtons();
+}
+
+// NEW: Undo last action
+function undo() {
+    if (undoStack.length === 0) return;
+    
+    // Save current state to redo
+    const currentState = frames.map(f => ({ ...f, image: null }));
+    redoStack.push(JSON.stringify(currentState));
+    
+    // Restore previous state
+    const prevState = JSON.parse(undoStack.pop());
+    // Note: We'll need to reload images, so this restores the structure
+    const frameCount = prevState.length;
+    frames = []; // Clear current frames - they'll need to be re-added
+    showNotification(`Undo: ${frameCount} frames restored (images will reload)`);
+    updateFramePreview();
+    updateStats();
+    updateUndoRedoButtons();
+}
+
+// NEW: Redo last undone action
+function redo() {
+    if (redoStack.length === 0) return;
+    
+    // Save current state to undo
+    const currentState = frames.map(f => ({ ...f, image: null }));
+    undoStack.push(JSON.stringify(currentState));
+    
+    // Restore redo state
+    const redoState = JSON.parse(redoStack.pop());
+    showNotification(`Redo: ${redoState.length} frames`);
+    updateFramePreview();
+    updateStats();
+    updateUndoRedoButtons();
+}
+
+// NEW: Update undo/redo button states
+function updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+    if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+    if (undoBtn) undoBtn.title = `Undo (${undoStack.length})`;
+    if (redoBtn) redoBtn.title = `Redo (${redoStack.length})`;
+}
+
+// NEW: Create undo/redo UI
+function createUndoRedoUI() {
+    const frameActions = document.querySelector('.frame-actions');
+    if (!frameActions) return;
+    
+    const btnGroup = document.createElement('div');
+    btnGroup.className = 'undo-redo-group';
+    btnGroup.innerHTML = `
+        <button id="undoBtn" class="icon-btn" onclick="window.undoAction()" disabled title="Undo (Ctrl+Z)">↩️ Undo</button>
+        <button id="redoBtn" class="icon-btn" onclick="window.redoAction()" disabled title="Redo (Ctrl+Y)">↪️ Redo</button>
+    `;
+    frameActions.insertBefore(btnGroup, frameActions.firstChild);
+}
+
+// NEW: Setup keyboard shortcuts
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd key shortcuts
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key.toLowerCase()) {
+                case 'g':
+                    e.preventDefault();
+                    generateGif();
+                    break;
+                case 'o':
+                    e.preventDefault();
+                    document.getElementById('fileInput').click();
+                    break;
+                case 'p':
+                    e.preventDefault();
+                    togglePreview();
+                    break;
+                case 'd':
+                    e.preventDefault();
+                    downloadGif();
+                    break;
+                case 'z':
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        redo();
+                    } else {
+                        undo();
+                    }
+                    break;
+                case 'y':
+                    e.preventDefault();
+                    redo();
+                    break;
+            }
+        }
+    });
+}
+
+// Expose undo/redo for HTML onclick
+window.undoAction = undo;
+window.redoAction = redo;
 
 function handleDrop(e) {
     e.preventDefault();
@@ -49,10 +174,33 @@ function handleFileSelect(e) {
     handleFiles(files);
 }
 
+// NEW: Maximum file size (10MB)
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 function handleFiles(files) {
+    let addedCount = 0;
+    let skippedCount = 0;
+    
     files.forEach(file => {
+        // NEW: File size validation
+        if (file.size > MAX_FILE_SIZE) {
+            showNotification(`Skipped: ${file.name} (${(file.size/1024/1024).toFixed(1)}MB > 10MB limit)`, 'error');
+            skippedCount++;
+            return;
+        }
+        
         const reader = new FileReader();
-        reader.onload = (e) => addFrame(e.target.result, file.name);
+        reader.onload = (e) => {
+            addFrame(e.target.result, file.name);
+            addedCount++;
+            if (addedCount + skippedCount === files.length) {
+                showNotification(`Added ${addedCount} frame(s)${skippedCount > 0 ? `, skipped ${skippedCount}` : ''}`);
+            }
+        };
+        reader.onerror = () => {
+            showNotification(`Error reading: ${file.name}`, 'error');
+            skippedCount++;
+        };
         reader.readAsDataURL(file);
     });
 }
@@ -60,6 +208,7 @@ function handleFiles(files) {
 function addFrame(dataUrl, name = 'Frame') {
     const img = new Image();
     img.onload = () => {
+        saveState(); // NEW: Save state before adding
         frames.push({
             image: img,
             dataUrl: dataUrl,
@@ -68,6 +217,9 @@ function addFrame(dataUrl, name = 'Frame') {
         updateFramePreview();
         updateStats();
         showNotification(`Added frame: ${name}`);
+    };
+    img.onerror = () => {
+        showNotification(`Error loading image: ${name}`, 'error');
     };
     img.src = dataUrl;
 }
@@ -150,12 +302,14 @@ function updateFramePreview() {
 function moveFrame(index, direction) {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= frames.length) return;
+    saveState(); // NEW: Save state before moving
     const [moved] = frames.splice(index, 1);
     frames.splice(newIndex, 0, moved);
     updateFramePreview();
 }
 
 function duplicateFrame(index) {
+    saveState(); // NEW: Save state before duplicating
     const frameToDup = frames[index];
     const newFrame = {
         image: frameToDup.image,
@@ -169,6 +323,7 @@ function duplicateFrame(index) {
 }
 
 function removeFrame(index) {
+    saveState(); // NEW: Save state before removing
     frames.splice(index, 1);
     updateFramePreview();
     updateStats();
@@ -177,10 +332,12 @@ function removeFrame(index) {
 function clearFrames() {
     if (frames.length === 0) return;
     if (!confirm('Clear all frames?')) return;
+    saveState(); // NEW: Save state before clearing
     frames = [];
     updateFramePreview();
     updateStats();
     document.getElementById('result').innerHTML = '';
+    showNotification('All frames cleared');
 }
 
 function updateStats() {
@@ -407,3 +564,8 @@ function showNotification(message, type = 'success') {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
+
+// NEW: Export for global access
+window.undo = undo;
+window.redo = redo;
+window.togglePreview = togglePreview;

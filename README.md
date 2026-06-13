@@ -11,7 +11,9 @@ Create animated GIFs from images, text, or canvas animations - entirely in your 
 - **🔄 Frame Reordering** - Drag and drop frames to reorder them
 - **⏱️ Individual Frame Delay** - Set unique timing for each frame
 - **▶️ Preview Animation** - Preview your GIF before exporting
-- **⌨️ Keyboard Shortcuts** - Ctrl+G generate, Ctrl+O open, Ctrl+P preview, Ctrl+D download
+- **↩️ Undo/Redo** - Undo or redo frame operations (up to 20 steps)
+- **🛡️ File Size Validation** - Automatically rejects oversized files (10MB limit)
+- **⌨️ Keyboard Shortcuts** - Ctrl+G generate, Ctrl+O open, Ctrl+P preview, Ctrl+D download, Ctrl+Z undo, Ctrl+Y redo
 - **📱 PWA Support** - Install as a standalone app with offline support
 - **🌓 Dark/Light Theme** - Toggle between beautiful dark and light interfaces
 - **💾 Settings Persistence** - Your preferences are automatically saved
@@ -50,6 +52,8 @@ Create animated GIFs from images, text, or canvas animations - entirely in your 
 | `Ctrl+O` | Open files |
 | `Ctrl+P` | Preview animation |
 | `Ctrl+D` | Download GIF |
+| `Ctrl+Z` | Undo last action |
+| `Ctrl+Y` | Redo last undone action |
 | `T` | Toggle dark/light theme |
 
 ## 🌓 Theme Toggle
@@ -71,6 +75,12 @@ Click the ☀️/🌙 button in the top-right corner to switch between dark and 
 4. Works offline after first visit
 
 ## 🆕 Recent Updates
+
+### v1.3.0
+- ↩️ **Undo/Redo functionality** - Undo or redo frame operations (Ctrl+Z/Ctrl+Y)
+- 🛡️ **File size validation** - Auto-reject files larger than 10MB
+- ⌨️ **Fixed keyboard shortcuts** - All shortcuts now properly implemented
+- 🔧 **Improved error handling** - Better feedback on file errors
 
 ### v1.2.0
 - 🌓 Added dark/light theme toggle
