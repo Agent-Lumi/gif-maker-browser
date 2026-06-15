@@ -35,6 +35,9 @@ function init() {
     document.getElementById('generateGif').addEventListener('click', generateGif);
     document.getElementById('downloadGif').addEventListener('click', downloadGif);
     
+    // NEW: Export and Share functionality
+    setupExportAndShare();
+    
     // New: Preview button
     const previewBtn = document.getElementById('previewFrames');
     if (previewBtn) {
@@ -529,6 +532,9 @@ function generateGif() {
             <p class="gif-info">Size: ${(blob.size / 1024).toFixed(1)} KB | Frames: ${frames.length}</p>
         `;
         
+        // NEW: Show export section
+        showExportSection();
+        
         showNotification('GIF generated successfully!');
     });
     
@@ -564,6 +570,221 @@ function showNotification(message, type = 'success') {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
+
+// NEW: Export and Share functionality
+function setupExportAndShare() {
+    // Export ZIP - all frames
+    const exportZipBtn = document.getElementById('exportZipBtn');
+    if (exportZipBtn) {
+        exportZipBtn.addEventListener('click', exportFramesAsZip);
+    }
+    
+    // Copy to clipboard
+    const copyBtn = document.getElementById('copyClipboardBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', copyGifToClipboard);
+    }
+    
+    // Native share
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', shareGif);
+    }
+    
+    // QR Code
+    const qrBtn = document.getElementById('qrBtn');
+    if (qrBtn) {
+        qrBtn.addEventListener('click', toggleQRCode);
+    }
+}
+
+// NEW: Export all frames as ZIP file
+async function exportFramesAsZip() {
+    if (frames.length === 0) {
+        showNotification('No frames to export!', 'error');
+        return;
+    }
+    
+    // Load JSZip from CDN if not available
+    if (typeof JSZip === 'undefined') {
+        await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+    }
+    
+    const zip = new JSZip();
+    const folder = zip.folder('gif-frames');
+    
+    // Add each frame to the zip
+    const framePromises = frames.map((frame, index) => {
+        return new Promise((resolve) => {
+            // Convert data URL to blob
+            fetch(frame.dataUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                    const paddedIndex = String(index + 1).padStart(3, '0');
+                    folder.file(`frame-${paddedIndex}.png`, blob);
+                    resolve();
+                })
+                .catch(() => resolve());
+        });
+    });
+    
+    await Promise.all(framePromises);
+    
+    // Add metadata file
+    const metadata = {
+        frameCount: frames.length,
+        totalDuration: frames.reduce((acc, f) => acc + (f.delay || 100), 0),
+        createdAt: new Date().toISOString(),
+        tool: 'GIF Maker Browser by Agent-Lumi'
+    };
+    folder.file('metadata.json', JSON.stringify(metadata, null, 2));
+    
+    // Generate and download zip
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `gif-frames-${Date.now()}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showNotification(`Exported ${frames.length} frames as ZIP!`);
+}
+
+// NEW: Copy GIF to clipboard
+async function copyGifToClipboard() {
+    if (!generatedGif) {
+        showNotification('Generate a GIF first!', 'error');
+        return;
+    }
+    
+    try {
+        if (navigator.clipboard && navigator.clipboard.write) {
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    'image/gif': generatedGif.blob
+                })
+            ]);
+            showNotification('GIF copied to clipboard! 📋');
+        } else {
+            // Fallback - copy link
+            await navigator.clipboard.writeText(generatedGif.url);
+            showNotification('GIF link copied to clipboard!');
+        }
+    } catch (err) {
+        // Fallback
+        await navigator.clipboard.writeText(generatedGif.url);
+        showNotification('GIF URL copied to clipboard!');
+    }
+}
+
+// NEW: Share GIF using Web Share API
+async function shareGif() {
+    if (!generatedGif) {
+        showNotification('Generate a GIF first!', 'error');
+        return;
+    }
+    
+    if (navigator.share) {
+        try {
+            const file = new File([generatedGif.blob], `animation-${Date.now()}.gif`, { 
+                type: 'image/gif' 
+            });
+            await navigator.share({
+                title: 'My GIF Animation',
+                text: 'Created with GIF Maker Browser by Agent-Lumi',
+                files: [file]
+            });
+            showNotification('Shared successfully! 🔗');
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                showNotification('Share failed. Trying fallback...', 'error');
+                // Fallback - copy to clipboard
+                copyGifToClipboard();
+            }
+        }
+    } else {
+        // Fallback for browsers without Web Share API
+        copyGifToClipboard();
+    }
+}
+
+// NEW: Generate QR Code for the GIF
+function toggleQRCode() {
+    const container = document.getElementById('qrCodeContainer');
+    const canvas = document.getElementById('qrCanvas');
+    
+    if (!generatedGif) {
+        showNotification('Generate a GIF first!', 'error');
+        return;
+    }
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'flex';
+        
+        // Load qrcode.js if not available
+        if (typeof QRCode === 'undefined') {
+            loadScript('https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js').then(() => {
+                generateQRCode(canvas, generatedGif.url);
+            });
+        } else {
+            generateQRCode(canvas, generatedGif.url);
+        }
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+function generateQRCode(canvas, url) {
+    if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
+        QRCode.toCanvas(canvas, url, {
+            width: 200,
+            margin: 2,
+            color: {
+                dark: '#6366f1',
+                light: '#ffffff'
+            }
+        }, (err) => {
+            if (err) {
+                console.error('QR Code generation failed:', err);
+            }
+        });
+    } else {
+        // Fallback - draw simple QR placeholder
+        const ctx = canvas.getContext('2d');
+        canvas.width = 200;
+        canvas.height = 200;
+        ctx.fillStyle = '#6366f1';
+        ctx.fillRect(0, 0, 200, 200);
+        ctx.fillStyle = 'white';
+        ctx.font = '14px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText('QR Code', 100, 100);
+    }
+}
+
+// NEW: Show export section when GIF is generated
+function showExportSection() {
+    const section = document.getElementById('exportSection');
+    if (section) {
+        section.style.display = 'block';
+    }
+}
+
+// NEW: Helper to load external scripts
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
 
 // NEW: Export for global access
 window.undo = undo;

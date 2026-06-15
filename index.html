@@ -95,6 +95,29 @@
             <div id="result" class="result-preview"></div>
         </section>
         
+        <!-- Export & Share Section - NEW -->
+        <section class="tool-section export-section" id="exportSection" style="display: none;">
+            <h2>📤 Export & Share</h2>
+            <div class="export-grid">
+                <button id="exportZipBtn" class="btn-export" title="Export all frames as ZIP">
+                    🗜️ Export ZIP
+                </button>
+                <button id="copyClipboardBtn" class="btn-export" title="Copy GIF to clipboard">
+                    📋 Copy to Clipboard
+                </button>
+                <button id="shareBtn" class="btn-export" title="Share using native share">
+                    🔗 Share
+                </button>
+                <button id="qrBtn" class="btn-export" title="Generate QR code for sharing">
+                    📱 QR Code
+                </button>
+            </div>
+            <div id="qrCodeContainer" class="qr-container" style="display: none;">
+                <canvas id="qrCanvas"></canvas>
+                <p>Scan to view the generated GIF</p>
+            </div>
+        </section>
+        
         <footer>
             <p>Made with 💡 by <a href="https://github.com/Agent-Lumi" target="_blank">Lumi</a></p>
             <small>Works entirely in your browser - no server needed!</small>
